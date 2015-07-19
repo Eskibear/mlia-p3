@@ -63,23 +63,52 @@ def majorityCnt(classList):
     return sortedClassCount[0][0]
 
 def createTree(dataSet, labels):
+    tmpLabels = labels[:] # mk a copy to operate
     classList = [example[-1] for example in dataSet]
     if classList.count(classList[0]) == len(classList):
         return classList[0]
     if len(dataSet[0]) == 1:
         return majorityCnt(classList) # choose majority if same input but diff output.
     bestFeature = chooseBestFeatureToSplit(dataSet)
-    bestFeatureLabel= labels[bestFeature]
+    bestFeatureLabel= tmpLabels[bestFeature]
     myTree = {bestFeatureLabel:{}}
-    del(labels[bestFeature]) # will destroy the structure of param `labels`
+    del(tmpLabels[bestFeature]) # will destroy the structure of param `tmpLabels`
     featValues = [example[bestFeature] for example in dataSet]
     uniqueVals = set(featValues)
     for value in uniqueVals:
-        subLabels = labels[:] # create a new copy instead of reference
+        subLabels = tmpLabels[:] # create a new copy instead of reference
         myTree[bestFeatureLabel][value] = createTree(\
                 splitDataSet(dataSet, bestFeature, value), subLabels)
     return myTree
 
+# Classifier:
+# for object <testVec> 
+# on features <featLabels> 
+# using decision tree <inputTree>
+def classify(inputTree, featLabels, testVec):
+    firstStr = list(inputTree.keys())[0]
+    secondDict = inputTree[firstStr]
+    featIndex = featLabels.index(firstStr)
+    for key in secondDict.keys():
+        if testVec[featIndex] == key:
+            if type(secondDict[key]).__name__ == 'dict':
+                return classify(secondDict[key], featLabels, testVec)
+            else:
+                return secondDict[key]
+
+
+# Decision Tree Save & Load
+def storeTree(inputTree, filename):
+    import pickle
+    fw = open(filename, 'wb')
+    pickle.dump(inputTree, fw)
+    fw.close()
+        
+def grabTree(filename):
+    import pickle
+    fr = open(filename, 'rb')
+    return pickle.load(fr)
+    # no need to close?
         
 
 
